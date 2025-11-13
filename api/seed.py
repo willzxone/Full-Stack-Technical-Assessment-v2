@@ -73,57 +73,62 @@ def seed_database():
         db.commit()
         print(f"✓ Created {len(users)} users")
         
-        # Generate 100,000 orders
-        print("Generating 100,000 orders...")
-        orders = []
-        transactions = []
+        # Generate 100,000 orders and transactions in batches
+        print("Generating 100,000 orders and transactions...")
+        batch_size = 100  # Reduced from 1000 to avoid parameter limit
+        total_orders = 100000
         
-        for i in range(100000):
-            user = random.choice(users)
-            product = random.choice(products)
-            quantity = random.randint(1, 10)
-            total_price = product.price * quantity
+        for batch_num in range(0, total_orders, batch_size):
+            orders_batch = []
             
-            order = Order(
-                id=str(uuid.uuid4()),
-                user_id=user.id,
-                product_id=product.id,
-                quantity=quantity,
-                total_price=total_price,
-                status=random.choice(statuses),
-                order_date=datetime.utcnow() - timedelta(days=random.randint(0, 365)),
-            )
-            orders.append(order)
+            for i in range(batch_num, min(batch_num + batch_size, total_orders)):
+                user = random.choice(users)
+                product = random.choice(products)
+                quantity = random.randint(1, 10)
+                total_price = product.price * quantity
+                
+                order = Order(
+                    id=str(uuid.uuid4()),
+                    user_id=user.id,
+                    product_id=product.id,
+                    quantity=quantity,
+                    total_price=total_price,
+                    status=random.choice(statuses),
+                    order_date=datetime.utcnow() - timedelta(days=random.randint(0, 365)),
+                )
+                orders_batch.append(order)
+                
+                # Update user stats
+                user.total_orders += 1
+                user.lifetime_value += total_price
             
-            # Create corresponding transaction
-            transaction = Transaction(
-                id=str(uuid.uuid4()),
-                order_id=order.id,
-                amount=total_price,
-                currency="USD",
-                payment_method=random.choice(payment_methods),
-                status=random.choice(["completed", "pending", "failed"]),
-                transaction_date=order.order_date,
-            )
-            transactions.append(transaction)
+            # Commit orders first
+            db.add_all(orders_batch)
+            db.commit()
             
-            # Update user stats
-            user.total_orders += 1
-            user.lifetime_value += total_price
+            # Now create and commit transactions for these orders
+            transactions_batch = []
+            for order in orders_batch:
+                transaction = Transaction(
+                    id=str(uuid.uuid4()),
+                    order_id=order.id,
+                    amount=order.total_price,
+                    currency="USD",
+                    payment_method=random.choice(payment_methods),
+                    status=random.choice(["completed", "pending", "failed"]),
+                    transaction_date=order.order_date,
+                )
+                transactions_batch.append(transaction)
             
-            if (i + 1) % 10000 == 0:
-                print(f"  Progress: {i + 1}/100,000 orders...")
+            db.add_all(transactions_batch)
+            db.commit()
+            
+            # Print progress
+            if (batch_num + batch_size) % 10000 == 0 or (batch_num + batch_size) >= total_orders:
+                print(f"  Progress: {min(batch_num + batch_size, total_orders)}/{total_orders} orders...")
         
-        db.add_all(orders)
-        db.add_all(transactions)
-        db.commit()
-        print(f"✓ Created {len(orders)} orders")
-        print(f"✓ Created {len(transactions)} transactions")
-        
-        # Update user stats in database
-        for user in users:
-            db.merge(user)
-        db.commit()
+        print(f"✓ Created {total_orders} orders")
+        print(f"✓ Created {total_orders} transactions")
         
         print("\n✓ Database seeding completed successfully!")
         print(f"Total records: {1000 + 5000 + 100000 + 100000} (products + users + orders + transactions)")

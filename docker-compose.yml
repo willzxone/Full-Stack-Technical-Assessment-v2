@@ -42,11 +42,13 @@ services:
       dockerfile: Dockerfile
     container_name: datatable_backend
     command: >
-      sh -c "python api/seed.py &&
+      sh -c "pip install -q -r requirements.txt &&
+             python -m api &&
              uvicorn api.app:app --host 0.0.0.0 --port 8000"
     environment:
       DATABASE_URL: postgresql://postgres:password@postgres:5432/datatable_db
       REDIS_URL: redis://redis:6379/0
+      PYTHONUNBUFFERED: 1
     ports:
       - "8000:8000"
     depends_on:
