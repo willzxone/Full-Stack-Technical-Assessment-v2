@@ -2,14 +2,11 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Copy everything first
-COPY . .
-
-# Copy requirements and install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Dependencies will be installed at runtime via docker-compose
+# Code will be mounted as a volume
 
 # Expose port
 EXPOSE 8000
 
-# Default command
-CMD ["sh", "-c", "python -m api.seed && uvicorn api.app:app --host 0.0.0.0 --port 8000"]
+# Default command (can be overridden in docker-compose)
+CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]
