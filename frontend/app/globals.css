@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f172a;
+  --background-secondary: #1e293b;
+  --foreground: #f1f5f9;
+  --accent: #0ea5e9;
+  --accent-dark: #0284c7;
 }
 
 @theme inline {
@@ -12,15 +15,77 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  @apply transition-colors duration-200;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #f8fafc;
+  color: #1f2937;
   font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+/* Glassmorphism utility classes */
+.glass {
+  @apply backdrop-blur-xl bg-white/80 border border-white/60 rounded-2xl;
+}
+
+.glass-light {
+  @apply backdrop-blur-md bg-white/70 border border-white/50 rounded-xl;
+}
+
+.glass-dark {
+  @apply backdrop-blur-xl bg-white/60 border border-white/40 rounded-2xl;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-linear-to-r from-cyan-800 via-blue-400 to-purple-400 bg-clip-text text-transparent;
+}
+
+/* Smooth glow effect */
+.glow {
+  @apply shadow-lg shadow-cyan-500/20;
+}
+
+.glow-blue {
+  @apply shadow-lg shadow-blue-500/20;
+}
+
+/* Hover effects */
+.hover-lift {
+  @apply transition-all duration-300 hover:scale-105 hover:-translate-y-1;
+}
+
+.hover-glow {
+  @apply transition-all duration-300;
+}
+
+.hover-glow:hover {
+  @apply shadow-lg shadow-cyan-500/20;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.5);
 }

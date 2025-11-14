@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Data Table - High Performance",
+  title: "DataTable Pro - High Performance",
   description: "High-performance data table with 100k+ records",
 };
 
@@ -30,17 +30,22 @@ export default function RootLayout({
       >
         <div className="min-h-screen bg-gray-50">
           {/* Navigation */}
-          <nav className="border-b border-gray-200 bg-white shadow-sm">
+          <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
             <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between">
-                <Link href="/" className="text-2xl font-bold text-blue-600">
-                  📊 DataTable
+                <Link href="/" className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600">
+                    <span className="text-lg font-bold text-white">⚡</span>
+                  </div>
+                  <span className="hidden sm:inline text-xl font-bold text-gray-900">
+                    DataTable Pro
+                  </span>
                 </Link>
-                <ul className="flex gap-6">
+                <ul className="flex gap-4 sm:gap-6 text-sm sm:text-base">
                   <li>
                     <Link
                       href="/products"
-                      className="text-gray-700 hover:text-blue-600"
+                      className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
                     >
                       Products
                     </Link>
@@ -48,7 +53,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/users"
-                      className="text-gray-700 hover:text-blue-600"
+                      className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
                     >
                       Users
                     </Link>
@@ -56,7 +61,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/orders"
-                      className="text-gray-700 hover:text-blue-600"
+                      className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
                     >
                       Orders
                     </Link>
@@ -64,7 +69,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/transactions"
-                      className="text-gray-700 hover:text-blue-600"
+                      className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
                     >
                       Transactions
                     </Link>
@@ -83,8 +88,8 @@ export default function RootLayout({
           <footer className="border-t border-gray-200 bg-white py-8">
             <div className="mx-auto max-w-7xl px-4 text-center text-sm text-gray-600 sm:px-6 lg:px-8">
               <p>
-                High-performance data table with 100k+ records • FastAPI +
-                PostgreSQL + Redis
+                DataTable Pro • High-performance data table with 100k+ records •
+                FastAPI + PostgreSQL + Redis
               </p>
             </div>
           </footer>
