@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,79 +64,76 @@ export function DataTable<T extends DataType>({
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Fetch data
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      setIsRetrying(false);
-
-      let response;
-      switch (type) {
-        case "products":
-          response = await apiClient.getProducts(
-            page,
-            pageSize,
-            debouncedSearch,
-            sortBy || "created_at",
-            sortOrder
-          );
-          break;
-        case "users":
-          response = await apiClient.getUsers(
-            page,
-            pageSize,
-            debouncedSearch,
-            undefined,
-            sortBy || "signup_date",
-            sortOrder
-          );
-          break;
-        case "orders":
-          response = await apiClient.getOrders(
-            page,
-            pageSize,
-            undefined,
-            sortBy || "order_date",
-            sortOrder
-          );
-          break;
-        case "transactions":
-          response = await apiClient.getTransactions(
-            page,
-            pageSize,
-            undefined,
-            undefined,
-            sortBy || "transaction_date",
-            sortOrder
-          );
-          break;
-      }
-
-      setData(response.data as T[]);
-      setTotalPages(response.total_pages);
-      setTotal(response.total);
-      setResponseTime(response.response_time_ms);
-    } catch (err) {
-      const errorMsg =
-        err instanceof Error
-          ? err.message
-          : "Failed to load data. Please check your backend connection.";
-      setError(errorMsg);
-      console.error("❌ Data fetch error:", errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  }, [type, page, pageSize, debouncedSearch, sortBy, sortOrder]);
-
   useEffect(() => {
     setPage(1);
-    fetchData();
-  }, [debouncedSearch, sortBy, sortOrder, fetchData]);
+  }, [debouncedSearch, sortBy, sortOrder]);
 
   useEffect(() => {
-    fetchData();
-  }, [page, pageSize, fetchData]);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        let response;
+        switch (type) {
+          case "products":
+            response = await apiClient.getProducts(
+              page,
+              pageSize,
+              debouncedSearch,
+              sortBy || "created_at",
+              sortOrder
+            );
+            break;
+          case "users":
+            response = await apiClient.getUsers(
+              page,
+              pageSize,
+              debouncedSearch,
+              undefined,
+              sortBy || "signup_date",
+              sortOrder
+            );
+            break;
+          case "orders":
+            response = await apiClient.getOrders(
+              page,
+              pageSize,
+              undefined,
+              sortBy || "order_date",
+              sortOrder
+            );
+            break;
+          case "transactions":
+            response = await apiClient.getTransactions(
+              page,
+              pageSize,
+              undefined,
+              undefined,
+              sortBy || "transaction_date",
+              sortOrder
+            );
+            break;
+        }
+
+        setData(response.data as T[]);
+        setTotalPages(response.total_pages);
+        setTotal(response.total);
+        setResponseTime(response.response_time_ms);
+      } catch (err) {
+        const errorMsg =
+          err instanceof Error
+            ? err.message
+            : "Failed to load data. Please check your backend connection.";
+        setError(errorMsg);
+        console.error("❌ Data fetch error:", errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [page, pageSize, debouncedSearch, sortBy, sortOrder, type]);
 
   const handleSort = (key: string) => {
     if (sortBy === key) {
@@ -149,7 +146,8 @@ export function DataTable<T extends DataType>({
 
   const handleRetry = () => {
     setIsRetrying(true);
-    fetchData();
+    // Page will refetch due to isRetrying in dependencies or manual page reset
+    setPage(1);
   };
 
   const formatValue = (value: unknown): string => {
@@ -402,27 +400,103 @@ export function DataTable<T extends DataType>({
                 <ChevronLeft className="h-4 w-4" />
               </Button>
 
-              <div className="flex items-center gap-1">
-                {Array.from({
-                  length: Math.min(5, totalPages),
-                }).map((_, i) => {
-                  const pageNum = i + 1;
-                  return (
+              <div className="flex items-center gap-1 flex-wrap justify-center">
+                {totalPages <= 7 ? (
+                  // Show all pages if 7 or fewer
+                  Array.from({ length: totalPages }).map((_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <Button
+                        key={pageNum}
+                        onClick={() => setPage(pageNum)}
+                        variant={page === pageNum ? "default" : "outline"}
+                        size="sm"
+                        className={`h-8 w-8 p-0 font-semibold ${
+                          page === pageNum
+                            ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                            : "glass hover:bg-white/10"
+                        }`}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })
+                ) : (
+                  // Smart pagination for many pages
+                  <>
+                    {/* First page */}
                     <Button
-                      key={pageNum}
-                      onClick={() => setPage(pageNum)}
-                      variant={page === pageNum ? "default" : "outline"}
+                      onClick={() => setPage(1)}
+                      variant={page === 1 ? "default" : "outline"}
                       size="sm"
-                      className={`h-8 w-8 p-0 ${
-                        page === pageNum
-                          ? "glass bg-cyan-500/30 border-cyan-400"
-                          : "glass"
+                      className={`h-8 w-8 p-0 font-semibold ${
+                        page === 1
+                          ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                          : "glass hover:bg-white/10"
                       }`}
                     >
-                      {pageNum}
+                      1
                     </Button>
-                  );
-                })}
+
+                    {/* Ellipsis if needed */}
+                    {page > 3 && (
+                      <span className="text-gray-600 px-2">...</span>
+                    )}
+
+                    {/* Pages around current page */}
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const pageNum = page - 2 + i;
+                      if (
+                        pageNum > 1 &&
+                        pageNum < totalPages &&
+                        pageNum !== page &&
+                        pageNum !== 1
+                      ) {
+                        return (
+                          <Button
+                            key={pageNum}
+                            onClick={() => setPage(pageNum)}
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 p-0 font-semibold glass hover:bg-white/10"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      }
+                      if (pageNum === page && pageNum !== 1) {
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant="default"
+                            size="sm"
+                            className="h-8 w-8 p-0 font-semibold bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      }
+                      return null;
+                    })}
+
+                    {/* Ellipsis if needed */}
+                    {page < totalPages - 2 && (
+                      <span className="text-gray-600 px-2">...</span>
+                    )}
+
+                    {/* Last page - only show if not already displayed */}
+                    {totalPages > page + 2 && (
+                      <Button
+                        onClick={() => setPage(totalPages)}
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0 font-semibold glass hover:bg-white/10"
+                      >
+                        {totalPages}
+                      </Button>
+                    )}
+                  </>
+                )}
               </div>
 
               <Button
